@@ -1,0 +1,6 @@
+@MultiLevelEncryptedEshop_HostAddress = http://localhost:5199
+
+GET {{MultiLevelEncryptedEshop_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
