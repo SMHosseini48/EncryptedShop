@@ -8,13 +8,9 @@ namespace MultiLevelEncryptedEshop.Models;
 
 public partial class Category : BaseEntity
 {
-    public string Id { get; set; }
-
     public string Name { get; set; }
 
     public string ParentId { get; set; }
-
-
 
     public virtual ICollection<Category> InverseParent { get; set; } = new List<Category>();
 

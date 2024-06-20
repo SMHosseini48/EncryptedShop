@@ -12,9 +12,14 @@ public static class AppConfigurationExtension
     {
         services.AddScoped<IAccountService, AccountService>();
     }
-    
+
     public static TokenValidationParameters ValidationParameters(IConfiguration configuration, bool expired)
     {
+        var sercrKey = Encoding.UTF8.GetBytes(configuration["JWT:Key"]);
+        byte[] ecKey = new byte[256 / 8];
+        Array.Copy(sercrKey, ecKey, 256 / 8);
+
+
         var aliveTokenValidation = new TokenValidationParameters
         {
             ValidateIssuer = false,
@@ -23,8 +28,9 @@ public static class AppConfigurationExtension
             ValidateIssuerSigningKey = true,
             ValidIssuer = configuration["JWT:Issuer"],
             ValidAudience = configuration["JWT:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Key"])),
-            ClockSkew = TimeSpan.Zero
+            IssuerSigningKey = new SymmetricSecurityKey(sercrKey),
+            ClockSkew = TimeSpan.Zero,
+            TokenDecryptionKey = new SymmetricSecurityKey(ecKey),
         };
 
         var expiredTokenValidation = aliveTokenValidation;
@@ -33,7 +39,7 @@ public static class AppConfigurationExtension
 
         return expired ? expiredTokenValidation : aliveTokenValidation;
     }
-    
+
     public static void ConfigureJwt(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddAuthentication(x =>

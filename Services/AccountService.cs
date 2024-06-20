@@ -89,6 +89,10 @@ public class AccountService : IAccountService
         var accessTokenLifeTime = TimeSpan.Parse(_configuration["JWT:AccessTokenLifeTime"]);
         var refreshTokenLifetime = TimeSpan.Parse(_configuration["JWT:RefreshTokenLifeTime"]);
 
+        byte[] ecKey = new byte[256 / 8];
+        Array.Copy(secret, ecKey, 256 / 8);
+
+        
         var tokenHandler = new JwtSecurityTokenHandler();
         var tokenDescriptor = new SecurityTokenDescriptor
         {
@@ -100,9 +104,12 @@ public class AccountService : IAccountService
                 new Claim("id", user.Id)
             }),
 
+            
+            
             Expires = DateTime.UtcNow.Add(accessTokenLifeTime),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(secret),
-                SecurityAlgorithms.HmacSha256Signature)
+                SecurityAlgorithms.HmacSha256Signature),
+            EncryptingCredentials = new EncryptingCredentials(new SymmetricSecurityKey(ecKey) , SecurityAlgorithms.Aes256KW ,SecurityAlgorithms.Aes256CbcHmacSha512 )
         };
 
         var token = tokenHandler.CreateToken(tokenDescriptor);
