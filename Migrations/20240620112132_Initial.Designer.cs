@@ -12,8 +12,8 @@ using MultiLevelEncryptedEshop.Models;
 namespace MultiLevelEncryptedEshop.Migrations
 {
     [DbContext(typeof(MultiLevelEncryptedShopContext))]
-    [Migration("20240616190005_added stored file")]
-    partial class addedstoredfile
+    [Migration("20240620112132_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
