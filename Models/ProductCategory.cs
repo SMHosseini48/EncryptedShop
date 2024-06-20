@@ -8,8 +8,6 @@ namespace MultiLevelEncryptedEshop.Models;
 
 public partial class ProductCategory : BaseEntity
 {
-    public string Id { get; set; }
-
     public string CategoryId { get; set; }
 
     public string ProductId { get; set; }

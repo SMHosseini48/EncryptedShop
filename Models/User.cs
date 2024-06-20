@@ -8,7 +8,6 @@ namespace MultiLevelEncryptedEshop.Models;
 
 public partial class User : BaseEntity
 {
-    public string Id { get; set; }
 
     public string FirstName { get; set; }
 

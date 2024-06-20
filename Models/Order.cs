@@ -8,7 +8,6 @@ namespace MultiLevelEncryptedEshop.Models;
 
 public partial class Order : BaseEntity
 {
-    public string Id { get; set; }
 
     public string UserId { get; set; }
     
