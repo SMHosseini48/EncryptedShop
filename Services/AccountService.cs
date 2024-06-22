@@ -66,7 +66,7 @@ public class AccountService : IAccountService
         }
         
         //check email 
-        var user = await _shopContext.Users.FirstOrDefaultAsync(x => x.Email != loginModel.Email.Normalize());
+        var user = await _shopContext.Users.FirstOrDefaultAsync(x => x.Email == loginModel.Email.Normalize());
         if (user == null)
         {
             throw new NullReferenceException();
