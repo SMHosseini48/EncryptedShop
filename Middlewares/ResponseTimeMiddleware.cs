@@ -19,7 +19,7 @@ public class ResponseTimeMiddleware
         context.Response.OnStarting(() => {
             stopwatch.Stop();
             var responseTimeForCompleteRequest = stopwatch.ElapsedMilliseconds;
-            context.Response.Headers["X-Response-Time-Milliseconds"] = responseTimeForCompleteRequest.ToString();
+            context.Response.Headers["ResponseTime"] = responseTimeForCompleteRequest.ToString();
             return Task.CompletedTask;
         });
 
