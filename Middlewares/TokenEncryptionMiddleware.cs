@@ -110,8 +110,8 @@ public class TokenEncryptionMiddleware
             var responseBody = await new StreamReader(memoryStream).ReadToEndAsync();
             memoryStream.Seek(0, SeekOrigin.Begin);
             // Modify the response body
-            
-            var modifiedResponseBody = ModifyResponse(responseBody);
+
+            var modifiedResponseBody = ModifyAccessToken(responseBody);
 
             // Write the modified response back to the original stream
             await context.Response.WriteAsync(modifiedResponseBody, Encoding.UTF8);
@@ -145,7 +145,7 @@ public class TokenEncryptionMiddleware
         }
     }
 
-    private string ModifyResponse(string responseBody)
+    private string ModifyAccessToken(string responseBody)
     {
         // Deserialize the response body into your class
         var responseObject = JsonConvert.DeserializeObject<SignInInfoDto>(responseBody);
@@ -153,11 +153,11 @@ public class TokenEncryptionMiddleware
         if (responseObject.AccessToken != null)
         {
             // Modify the fields as necessary
-            responseObject.AccessToken = Encrypt(responseObject.AccessToken); // Example modification
+            responseObject.AccessToken = Encrypt(responseObject.AccessToken);
+            return JsonConvert.SerializeObject(responseObject);
         }
 
-        // Serialize the modified object back to JSON
-        return JsonConvert.SerializeObject(responseObject);
+        return responseBody;
     }
 
     public static string Encrypt(string token)

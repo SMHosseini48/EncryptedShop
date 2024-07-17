@@ -1,3 +1,4 @@
+using AspNetCoreRateLimit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using MultiLevelEncryptedEshop.Dtos;
@@ -62,11 +63,24 @@ builder.Services.AddDbContext<MultiLevelEncryptedShopContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddCustomServices();
 
+builder.Services.AddMemoryCache();
+
+//load general configuration from appsettings.json
+builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
+
+//load ip rules from appsettings.json
+builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimitPolicies"));
+
+// inject counter and rules stores
+builder.Services.AddInMemoryRateLimiting();
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 
 app.UseSwagger();
+app.UseIpRateLimiting();
 app.UseSwaggerUI();
 app.UseMiddleware<ResponseTimeToBodyMiddleware>();
 app.UseMiddleware<ResponseTimeMiddleware>();

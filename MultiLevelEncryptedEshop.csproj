@@ -11,6 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="AspNetCoreRateLimit" Version="5.0.0" />
         <PackageReference Include="EfCore.SchemaCompare" Version="8.0.4" />
         <PackageReference Include="ErikEJ.EntityFrameworkCore.DgmlBuilder" Version="6.0.0" />
         <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
