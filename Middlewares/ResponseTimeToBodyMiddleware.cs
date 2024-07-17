@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text.Json.Nodes;
 using MultiLevelEncryptedEshop.Dtos;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -47,11 +48,20 @@ public class ResponseTimeToBodyMiddleware
     private string ModifyResponse(string responseBody, string time)
     {
         // Deserialize the response body into your class
-        JObject jsonObject = JObject.Parse(responseBody);
+        try
+        {
+            JObject jsonObject = JObject.Parse(responseBody);
 
 // Append the new field
-        jsonObject["ResponseTime"] = time;
-        return jsonObject.ToString();
+            jsonObject["ResponseTime"] = time;
+            return jsonObject.ToString();
+        }
+        catch (Exception e)
+        {
+            var newRespnoseJson =new JObject();
+            newRespnoseJson["ResponseTime"] = time;
+            return newRespnoseJson.ToString();
+        }
         // Serialize the modified object back to JSON
     }
 }

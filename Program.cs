@@ -63,6 +63,7 @@ builder.Services.AddDbContext<MultiLevelEncryptedShopContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddCustomServices();
 
+builder.Services.AddOptions();
 builder.Services.AddMemoryCache();
 
 //load general configuration from appsettings.json

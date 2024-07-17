@@ -148,16 +148,17 @@ public class TokenEncryptionMiddleware
     private string ModifyAccessToken(string responseBody)
     {
         // Deserialize the response body into your class
-        var responseObject = JsonConvert.DeserializeObject<SignInInfoDto>(responseBody);
-
-        if (responseObject.AccessToken != null)
+        try
         {
+            var responseObject = JsonConvert.DeserializeObject<SignInInfoDto>(responseBody);
             // Modify the fields as necessary
             responseObject.AccessToken = Encrypt(responseObject.AccessToken);
             return JsonConvert.SerializeObject(responseObject);
         }
-
-        return responseBody;
+        catch (Exception e)
+        {
+            return responseBody;
+        }
     }
 
     public static string Encrypt(string token)
