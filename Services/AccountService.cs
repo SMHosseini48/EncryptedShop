@@ -34,7 +34,7 @@ public class AccountService : IAccountService
             throw new ValidationException(validationResult.Errors);
         }
 
-        var user = await _shopContext.Users.FindAsync(registerAccountModel.Email.Normalize());
+        var user = await _shopContext.Users.FirstOrDefaultAsync(x => x.Email == registerAccountModel.Email.Normalize());
         if (user != null)
         {
             throw new Exception("user already exists");
@@ -126,7 +126,7 @@ public class AccountService : IAccountService
         var refreshTokenRegisterResult = await _shopContext.AddAsync(refreshToken);
         await _shopContext.SaveChangesAsync();
         // return the result
-        return new SignInInfoDto {RefreshToken = refreshTokenRegisterResult.Entity.Token, AccessToken = TokenEncryptionMiddleware.Encrypt(accessToken)};
+        return new SignInInfoDto {RefreshToken = refreshTokenRegisterResult.Entity.Token, AccessToken = accessToken};
     }
 
     public static string GenerateRandomBytes(int length = 16, bool urlFrendly = true)

@@ -1,8 +1,11 @@
-﻿using System.Text.Json;
+﻿using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 using MultiLevelEncryptedEshop.Dtos;
 using MultiLevelEncryptedEshop.Models;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace MultiLevelEncryptedEshop.Middlewares;
 
@@ -90,76 +93,71 @@ public class TokenEncryptionMiddleware
         if (!context.Request.Headers.Authorization.ToString().IsNullOrEmpty())
         {
             var token = context.Request.Headers.Authorization.ToString();
-            context.Request.Headers.Authorization = token.Split()[0] +" "+ Decrypt(token.Split()[1]);
+            context.Request.Headers.Authorization = token.Split()[0] + " " + Decrypt(token.Split()[1]);
         }
 
-        //     // Store the original body stream for restoring the response body back to its original stream
-        //     var originalBodyStream = context.Response.Body;
-        //
-        //     // Create new memory stream for reading the response; Response body streams are write-only, therefore memory stream is needed here to read
-        //     await using var memoryStream = new MemoryStream();
-        //     context.Response.Body = memoryStream;
-        //
-        //     // Call the next middleware
-        //     
-        //
-        //     // Set stream pointer position to 0 before reading
-        //     memoryStream.Seek(0, SeekOrigin.Begin);
-        //
-        //     // Read the body from the stream
-        //     var responseBodyText = await new StreamReader(memoryStream).ReadToEndAsync();
-        //
-        //     // Reset the position to 0 after reading
-        //     memoryStream.Seek(0, SeekOrigin.Begin);
-        //
-        //     // Do this last, that way you can ensure that the end results end up in the response.
-        //     // (This resulting response may come either from the redirected route or other special routes if you have any redirection/re-execution involved in the middleware.)
-        //     // This is very necessary. ASP.NET doesn't seem to like presenting the contents from the memory stream.
-        //     // Therefore, the original stream provided by the ASP.NET Core engine needs to be swapped back.
-        //     // Then write back from the previous memory stream to this original stream.
-        //     // (The content is written in the memory stream at this point; it's just that the ASP.NET engine refuses to present the contents from the memory stream.)
-        //     context.Response.Body = originalBodyStream;
-        //     await originalBodyStream.CopyToAsync(memoryStream);
-        //
-        //     // Per @Necip Sunmaz's recommendation this also works:
-        //     // Just make sure that the memoryStrream's pointer position is set back to 0 again.
-        //     // await memoryStream.CopyToAsync(originalBodyStream);
-        //     // context.Response.Body = originalBodyStream;
-        //
-        //
-        //     // await using (Stream originalResponseStreamClone = context.Response.Body)
-        //     // {
-        //     //     context.Response.Body = new MemoryStream();
-        //     //     await originalResponseStreamClone.CopyToAsync(memoryStream);
-        //     //     var responseBody = await new StreamReader(memoryStream).ReadToEndAsync();
-        //     //     var responseObject = JsonSerializer.Deserialize<SignInInfoDto>(responseBody);
-        //     //     if (responseObject.GetType() == typeof(SignInInfoDto))
-        //     //     {
-        //     //         //cipher the token with  the table 
-        //     //
-        //     //         var encryptedToken = Encrypt(responseObject.AccessToken);
-        //     //         var newResponseBody = JsonSerializer.Serialize(new SignInInfoDto
-        //     //         {
-        //     //             AccessToken = encryptedToken,
-        //     //             RefreshToken = responseObject.RefreshToken
-        //     //         });
-        //     //
-        //     //         var stream = new MemoryStream();
-        //     //         var streamWriter = new StreamWriter(stream);
-        //     //         await streamWriter.WriteAsync(newResponseBody);
-        //     //         await streamWriter.FlushAsync();
-        //     //         stream.Position = 0;
-        //     //         context.Response.Body = stream;
-        //     //     }
-        //     // }
-        //     //
-        //     //
-        //     // Console.WriteLine($"{context.Response.Body.CanRead}\n{context.Response.Body.CanSeek}");
-        //
-        //
-        // }
 
-        await _next(context);
+        var originalBodyStream = context.Response.Body;
+
+        // Create a new memory stream to intercept the response
+        using (var memoryStream = new MemoryStream())
+        {
+            context.Response.Body = memoryStream;
+
+            await _next(context);
+            // Read the response stream
+            memoryStream.Seek(0, SeekOrigin.Begin);
+            var responseBody = await new StreamReader(memoryStream).ReadToEndAsync();
+            memoryStream.Seek(0, SeekOrigin.Begin);
+            // Modify the response body
+            
+            var modifiedResponseBody = ModifyResponse(responseBody);
+
+            // Write the modified response back to the original stream
+            await context.Response.WriteAsync(modifiedResponseBody, Encoding.UTF8);
+
+            // Reset the response body stream to the original stream
+            memoryStream.Seek(0, SeekOrigin.Begin);
+            await memoryStream.CopyToAsync(originalBodyStream);
+            context.Response.Body = originalBodyStream;
+        }
+    }
+
+    public bool IsValidJson(string strInput)
+    {
+        strInput = strInput.Trim();
+        if ((strInput.StartsWith("{") && strInput.EndsWith("}")) || // For object
+            (strInput.StartsWith("[") && strInput.EndsWith("]"))) // For array
+        {
+            try
+            {
+                var obj = JToken.Parse(strInput);
+                return true;
+            }
+            catch (JsonReaderException) // Parsing failed
+            {
+                return false;
+            }
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private string ModifyResponse(string responseBody)
+    {
+        // Deserialize the response body into your class
+        var responseObject = JsonConvert.DeserializeObject<SignInInfoDto>(responseBody);
+
+        if (responseObject.AccessToken != null)
+        {
+            // Modify the fields as necessary
+            responseObject.AccessToken = Encrypt(responseObject.AccessToken); // Example modification
+        }
+
+        // Serialize the modified object back to JSON
+        return JsonConvert.SerializeObject(responseObject);
     }
 
     public static string Encrypt(string token)

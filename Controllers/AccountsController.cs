@@ -35,6 +35,6 @@ public class AccountsController : ControllerBase
     [HttpGet("test")]
     public IActionResult test()
     {
-        return Ok("everything is good");
+        return new JsonResult(new {message = "everything is good"});
     }
 }
